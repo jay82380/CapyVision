@@ -39,7 +39,8 @@ android {
 }
 
 dependencies {
-
+    implementation (libs.androidx.camera.camera2)
+    implementation (libs.androidx.lifecycle.camera)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
