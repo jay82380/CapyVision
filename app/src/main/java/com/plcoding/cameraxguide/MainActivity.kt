@@ -70,7 +70,7 @@ import java.util.*
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     private val TAG = "SAVE_BITMAP"
-    private var tts: TextToSpeech? = null
+    private var tts: TextToSpeech? = TextToSpeech(this, this)
     private var btnSpeak: Button? = null
     private var etSpeak: EditText? = null
 
