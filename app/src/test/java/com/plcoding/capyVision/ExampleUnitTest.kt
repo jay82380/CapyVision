@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.plcoding.capyVision
 
 import org.junit.Test
 
