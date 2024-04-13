@@ -61,10 +61,18 @@ import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import androidx.appcompat.app.AppCompatActivity
+import android.speech.tts.TextToSpeech
+import android.widget.Button
+import android.widget.EditText
+import java.util.*
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     private val TAG = "SAVE_BITMAP"
+    private var tts: TextToSpeech? = null
+    private var btnSpeak: Button? = null
+    private var etSpeak: EditText? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -201,8 +209,11 @@ class MainActivity : ComponentActivity() {
                                 val confidence = label.confidence
                                 val index = label.index
                                 println("Label: $text, Confidence: $confidence, Index: $index")
+                                speakOut(text)
                             }
                         }
+
+
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -229,61 +240,28 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    /**Save Bitmap To Gallery
-     * @param bitmap The bitmap to be saved in Storage/Gallery*/
-    private fun saveBitmapImage(bitmap: Bitmap) {
-        val timestamp = System.currentTimeMillis()
+     override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = tts!!.setLanguage(Locale.US)
 
-        //Tell the media scanner about the new file so that it is immediately available to the user.
-        val values = ContentValues()
-        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-        values.put(MediaStore.Images.Media.DATE_ADDED, timestamp)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            values.put(MediaStore.Images.Media.DATE_TAKEN, timestamp)
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/" + getString(R.string.app_name))
-            values.put(MediaStore.Images.Media.IS_PENDING, true)
-            val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            if (uri != null) {
-                try {
-                    val outputStream = contentResolver.openOutputStream(uri)
-                    if (outputStream != null) {
-                        try {
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-                            outputStream.close()
-                        } catch (e: Exception) {
-                            Log.e(TAG, "saveBitmapImage: ", e)
-                        }
-                    }
-                    values.put(MediaStore.Images.Media.IS_PENDING, false)
-                    contentResolver.update(uri, values, null, null)
-
-                    Toast.makeText(this, "Saved...", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Log.e(TAG, "saveBitmapImage: ", e)
-                }
-            }
-        } else {
-            val imageFileFolder = File(Environment.getExternalStorageDirectory().toString() + '/' + getString(R.string.app_name))
-            if (!imageFileFolder.exists()) {
-                imageFileFolder.mkdirs()
-            }
-            val mImageName = "$timestamp.png"
-            val imageFile = File(imageFileFolder, mImageName)
-            try {
-                val outputStream: OutputStream = FileOutputStream(imageFile)
-                try {
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-                    outputStream.close()
-                } catch (e: Exception) {
-                    Log.e(TAG, "saveBitmapImage: ", e)
-                }
-                values.put(MediaStore.Images.Media.DATA, imageFile.absolutePath)
-                contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-
-                Toast.makeText(this, "Saved...", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Log.e(TAG, "saveBitmapImage: ", e)
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS","The Language not supported!")
+            } else {
+                btnSpeak!!.isEnabled = true
             }
         }
+    }
+    private fun speakOut(text: String) {
+        tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null,"")
+    }
+
+    public override fun onDestroy() {
+        // Shutdown TTS when
+        // activity is destroyed
+        if (tts != null) {
+            tts!!.stop()
+            tts!!.shutdown()
+        }
+        super.onDestroy()
     }
 }
