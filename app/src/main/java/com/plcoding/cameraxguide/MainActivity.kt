@@ -54,6 +54,10 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.compose.runtime.internal.illegalDecoyCallException
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.label.ImageLabeling
+import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -183,8 +187,22 @@ class MainActivity : ComponentActivity() {
                         matrix,
                         true
                     )
-                    saveBitmapImage(rotatedBitmap)
-                    onPhotoTaken(rotatedBitmap)
+//                    saveBitmapImage(rotatedBitmap)
+                    val image1: InputImage = InputImage.fromBitmap(rotatedBitmap, 0)
+                    val options = ImageLabelerOptions.Builder()
+                        .setConfidenceThreshold(0.7f)
+                        .build()
+                    val labeler = ImageLabeling.getClient(options)
+
+                    labeler.process(image1)
+                        .addOnSuccessListener { labels ->
+                            for (label in labels) {
+                                val text = label.text
+                                val confidence = label.confidence
+                                val index = label.index
+                                println("Label: $text, Confidence: $confidence, Index: $index")
+                            }
+                        }
                 }
 
                 override fun onError(exception: ImageCaptureException) {
