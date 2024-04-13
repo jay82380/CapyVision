@@ -68,12 +68,8 @@ import android.widget.EditText
 import java.util.*
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
-
     private val TAG = "SAVE_BITMAP"
-    private var tts: TextToSpeech? = TextToSpeech(this, this)
-    private var btnSpeak: Button? = null
-    private var etSpeak: EditText? = null
-
+    private var tts = TextToSpeech(this, this)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!hasRequiredPermissions()) {
@@ -172,7 +168,6 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             }
         }
     }
-
     private fun takePhoto(
         controller: LifecycleCameraController,
         onPhotoTaken: (Bitmap) -> Unit
@@ -223,7 +218,6 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             }
         )
     }
-
     private fun hasRequiredPermissions(): Boolean {
         return CAMERAX_PERMISSIONS.all {
             ContextCompat.checkSelfPermission(
@@ -232,36 +226,21 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             ) == PackageManager.PERMISSION_GRANTED
         }
     }
-
     companion object {
         private val CAMERAX_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
         )
     }
-
-     override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            val result = tts!!.setLanguage(Locale.US)
-
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Log.e("TTS","The Language not supported!")
-            } else {
-                btnSpeak!!.isEnabled = true
-            }
-        }
+    override fun onInit(status: Int) {
+        tts.setLanguage(Locale.US)
     }
     private fun speakOut(text: String) {
-        tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null,"")
+        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null,"")
     }
-
     public override fun onDestroy() {
-        // Shutdown TTS when
-        // activity is destroyed
-        if (tts != null) {
-            tts!!.stop()
-            tts!!.shutdown()
-        }
+        tts.stop()
+        tts.shutdown()
         super.onDestroy()
     }
 }
